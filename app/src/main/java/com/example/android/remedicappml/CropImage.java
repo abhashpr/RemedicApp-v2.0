@@ -6,13 +6,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.os.Environment;
-import android.os.Handler;
 import android.util.Log;
-import android.widget.TextView;
-import android.widget.ToggleButton;
-
-import androidx.lifecycle.ViewModel;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.google.mlkit.vision.face.Face;
 import com.google.mlkit.vision.face.FaceContour;
@@ -46,8 +40,6 @@ public final class CropImage {
     private List<Face> faces;
     private Bitmap bitmap;
 
-    public ViewModel vm;
-
     // Freq + timer variable
     private static long startTime = 0;
     private double SamplingFreq;
@@ -73,10 +65,73 @@ public final class CropImage {
         vitals.add(1, 0f);
     }
 
-    public ArrayList<Float> setVariables(ByteBuffer data, FrameMetadata frameMetadata,
-                                          List<Face> faces, ViewModel vm) {
+    public Float getPixelsMean(ByteBuffer data,
+                               FrameMetadata frameMetadata,
+                               List<Face> faces) {
         this.faces = faces;
-        this.vm = vm;
+        this.bitmap = BitmapUtils.getBitmap(data, frameMetadata);
+        Float pixelAvg = (float) cropRoiAndCalculateAvg(this.bitmap, this.faces.get(0));
+        return pixelAvg;
+    }
+
+    private double cropRoiAndCalculateAvg(Bitmap bitmap, Face face) {
+
+        Mat src = new Mat();
+        Utils.bitmapToMat(bitmap, src);
+
+        Mat mask =  new Mat(new Size(src.cols(), src.rows()), CvType.CV_8UC1);
+        mask.setTo(new Scalar(0.0));
+        Scalar white = new Scalar(255, 255, 255);
+
+        PointF forehead_ul = new PointF(0, 0);
+        PointF forehead_ur = new PointF(0, 0);
+        PointF forehead_bl = new PointF(0, 0);
+        PointF forehead_br = new PointF(0, 0);
+
+        MatOfPoint polyPoints = new MatOfPoint();
+        List<Point> points = new ArrayList<>();
+
+        for (FaceContour contour : face.getAllContours()) {
+            int count = 0;
+            for (PointF point : contour.getPoints()) {
+                if (contour.getFaceContourType() == 1 && count == 33) {
+                    forehead_ul = point;
+                    points.add(new Point((int) point.x, (int) point.y));
+                }
+
+                if (contour.getFaceContourType() == 1 && count == 2) {
+                    forehead_ur = point;
+                    points.add(new Point((int) point.x, (int) point.y));
+                }
+
+                if (contour.getFaceContourType() == 2 && count == 2) {
+                    forehead_bl = point;
+                    points.add(new Point((int) point.x, (int) point.y));
+                }
+
+                if (contour.getFaceContourType() == 4 && count == 2) {
+                    forehead_br = point;
+                    points.add(new Point((int) point.x, (int) point.y));
+                }
+                count++;
+            }
+        }
+
+        polyPoints.fromList(points);
+        Imgproc.fillConvexPoly(mask, polyPoints, white);
+
+        List<Mat> lab_list = new ArrayList(3);
+        Core.split(src, lab_list);
+
+        Scalar RedAvg = Core.mean(lab_list.get(2), mask);
+
+        return RedAvg.val[0];
+    }
+
+
+    public ArrayList<Float> setVariables(ByteBuffer data, FrameMetadata frameMetadata,
+                                          List<Face> faces) {
+        this.faces = faces;
 
         for (Face face: faces) {
             if (data == null) {
@@ -189,13 +244,11 @@ public final class CropImage {
             Double HRFreq = FFT.FFT(Red, counter, SamplingFreq);
             Float bpm = (float) ceil(HRFreq * 60);
 
-
             counter = 0;
             // Log.d(TAG, Thread.currentThread().getName());
             Log.d(TAG, "Heart Beat (per minute) : " + (String.valueOf(bpm)));
             vitals.set(0, bpm);
             vitals.set(1, 0f);
-
         }
         return vitals;
 

@@ -6,8 +6,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.ViewModel;
-import androidx.lifecycle.ViewModelProvider;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -50,8 +48,6 @@ public final class  MainActivity extends AppCompatActivity
     private TextView bpmValue;
     private TextView spo2Value;
 
-    private TimeTableViewModel viewModel;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,15 +74,15 @@ public final class  MainActivity extends AppCompatActivity
         // ToggleButton facingSwitch = findViewById(R.id.facing_switch);
         // facingSwitch.setOnCheckedChangeListener(this);
 
-//        TextView bpmValue = (TextView) findViewById(R.id.bpm_value);
-//        if (bpmValue == null) {
-//            Log.e(TAG, "bpmValue is null !!" );
-//        }
+        // TextView bpmValue = (TextView) findViewById(R.id.bpm_value);
+        // if (bpmValue == null) {
+        //     Log.e(TAG, "bpmValue is null !!" );
+        // }
 
-//        TextView spo2Value = (TextView) findViewById(R.id.spo2_value);
-//        if (spo2Value == null) {
-//            Log.e(TAG, "spo2value is null !!" );
-//        }
+        // TextView spo2Value = (TextView) findViewById(R.id.spo2_value);
+        // if (spo2Value == null) {
+        //     Log.e(TAG, "spo2value is null !!" );
+        // }
 
         if (allPermissionsGranted()) {
             createCameraSource(selectedModel);
@@ -98,8 +94,7 @@ public final class  MainActivity extends AppCompatActivity
             Log.e("OpenCV", "Unable to load OpenCV!");
         else
             Log.d("OpenCV", "OpenCV loaded Successfully!");
-
-        //viewModel = new ViewModelProvider(this).get(TimeTableViewModel.class);
+            // viewModel = new ViewModelProvider(this).get(TimeTableViewModel.class);
     }
 
 
@@ -132,7 +127,8 @@ public final class  MainActivity extends AppCompatActivity
         try {
             PackageInfo info =
                     this.getPackageManager()
-                            .getPackageInfo(this.getPackageName(), PackageManager.GET_PERMISSIONS);
+                            .getPackageInfo(this.getPackageName(),
+                                    PackageManager.GET_PERMISSIONS);
             String[] ps = info.requestedPermissions;
             if (ps != null && ps.length > 0) {
                 return ps;
@@ -216,7 +212,7 @@ public final class  MainActivity extends AppCompatActivity
 
         try {
             Log.i(TAG, "Using Face Detector Processor");
-            cameraSource.setMachineLearningFrameProcessor(new FaceDetectorProcessor(this, viewModel));
+            cameraSource.setMachineLearningFrameProcessor(new FaceDetectorProcessor(this));
         } catch (RuntimeException e) {
           Log.e(TAG, "Can not create image processor: " + model, e);
           Toast.makeText(

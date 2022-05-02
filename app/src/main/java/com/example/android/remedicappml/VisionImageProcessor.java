@@ -5,7 +5,10 @@ import android.os.Build.VERSION_CODES;
 import androidx.annotation.RequiresApi;
 import androidx.camera.core.ImageProxy;
 import com.google.mlkit.common.MlKitException;
+import com.google.mlkit.vision.face.Face;
+
 import java.nio.ByteBuffer;
+import java.util.List;
 
 /** An interface to process the images with different vision detectors and custom image models. */
 public interface VisionImageProcessor {
@@ -24,4 +27,12 @@ public interface VisionImageProcessor {
 
     /** Stops the underlying machine learning model and release resources. */
     void stop();
+
+    /* Added to get data from VisionImageProcessor class
+    Created by: Abhash Priyadarshi
+     */
+    List<Face> returnDetectedFaces();
+    FrameMetadata returnImageMetadata();
+    ByteBuffer returnLatestImage();
+
 }

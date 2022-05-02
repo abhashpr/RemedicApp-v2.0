@@ -38,7 +38,7 @@ public class VitalsInfoGraphicsNw extends GraphicOverlay.Graphic
 
         paintShape = new Paint();
         paintShape.setAntiAlias(true);
-        paintShape.setColor(getApplicationContext().getResources().getColor(R.color.bg));
+        paintShape.setColor(getApplicationContext().getResources().getColor(R.color.bgw));
         paintShape.setTextSize(60f);
         paintShape.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
 
@@ -55,22 +55,22 @@ public class VitalsInfoGraphicsNw extends GraphicOverlay.Graphic
 
         miniTextPaint = new Paint();
         miniTextPaint.setAntiAlias(true);
-        miniTextPaint.setColor(getApplicationContext().getResources().getColor(R.color.white));
+        miniTextPaint.setColor(getApplicationContext().getResources().getColor(R.color.black));
         miniTextPaint.setTextSize(20f);
         miniTextPaint.setStrokeWidth(5f);
 
         dividerPaint = new Paint();
         dividerPaint.setAntiAlias(true);
-        dividerPaint.setColor(getApplicationContext().getResources().getColor(R.color.white));
+        dividerPaint.setColor(getApplicationContext().getResources().getColor(R.color.gray));
         miniTextPaint.setStrokeWidth(1f);
 
         needle = new Paint();
         needle.setAntiAlias(true);
-        needle.setColor(getApplicationContext().getResources().getColor(R.color.white));
+        needle.setColor(getApplicationContext().getResources().getColor(R.color.gray));
 
         p = new Paint();
         p.setAntiAlias(true);
-        p.setColor(getApplicationContext().getResources().getColor(R.color.light));
+        p.setColor(getApplicationContext().getResources().getColor(R.color.bgw));
 
         mAnimator = new ValueAnimator();
         mAnimator.setDuration(2000);

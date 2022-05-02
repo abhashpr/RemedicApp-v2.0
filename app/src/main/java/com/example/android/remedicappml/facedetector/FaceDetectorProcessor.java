@@ -3,10 +3,7 @@ package com.example.android.remedicappml.facedetector;
 import android.content.Context;
 import android.graphics.PointF;
 import androidx.annotation.NonNull;
-import androidx.lifecycle.ViewModel;
-
 import android.util.Log;
-
 import com.google.android.gms.tasks.Task;
 import com.google.mlkit.vision.common.InputImage;
 import com.example.android.remedicappml.GraphicOverlay;
@@ -27,8 +24,8 @@ public class FaceDetectorProcessor extends VisionProcessorBase<List<Face>> {
 
     private final FaceDetector detector;
 
-    public FaceDetectorProcessor(Context context, ViewModel vm) {
-        super(context, vm);
+    public FaceDetectorProcessor(Context context) {
+        super(context);
         FaceDetectorOptions faceDetectorOptions = PreferenceUtils.getFaceDetectorOptions(context);
         Log.v(MANUAL_TESTING_LOG, "Face detector options: " + faceDetectorOptions);
         detector = FaceDetection.getClient(faceDetectorOptions);
@@ -49,6 +46,11 @@ public class FaceDetectorProcessor extends VisionProcessorBase<List<Face>> {
             graphicOverlay.add(new FaceGraphic(graphicOverlay, face));
             logExtrasForTesting(face);
         }
+    }
+
+    @Override
+    protected void onFailure(@NonNull Exception e) {
+        Log.e(TAG, "Face detection failed " + e);
     }
 
     private static void logExtrasForTesting(Face face) {
@@ -114,8 +116,4 @@ public class FaceDetectorProcessor extends VisionProcessorBase<List<Face>> {
         }
     }
 
-    @Override
-    protected void onFailure(@NonNull Exception e) {
-        Log.e(TAG, "Face detection failed " + e);
-    }
 }

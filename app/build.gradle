@@ -25,10 +25,10 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
-    aaptOptions {
-        noCompress "tflite"
+    androidResources {
+        noCompress 'tflite'
     }
+
 
 }
 
@@ -91,6 +91,10 @@ dependencies {
 
     // opencv
     implementation "com.quickbirdstudios:opencv:4.5.3.0"
+
+    // API development using retrofit
+    implementation 'com.squareup.retrofit2:converter-scalars:2.5.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.+'
 
     // opencv with contributions
     // implementation "com.quickbirdstudios:opencv-contrib:4.5.3.0"

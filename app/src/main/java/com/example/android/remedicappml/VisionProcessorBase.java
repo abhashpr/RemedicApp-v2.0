@@ -3,7 +3,6 @@ package com.example.android.remedicappml;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.MemoryInfo;
 import android.content.Context;
@@ -14,15 +13,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import android.util.Log;
-import android.widget.TextView;
+
 import android.widget.Toast;
 import androidx.annotation.GuardedBy;
 import androidx.camera.core.ExperimentalGetImage;
 import androidx.camera.core.ImageProxy;
 import androidx.lifecycle.ViewModel;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskExecutors;
@@ -36,6 +32,7 @@ import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.Face;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -70,8 +67,6 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
     private long maxDetectorMs = 0;
     private long minDetectorMs = Long.MAX_VALUE;
 
-    public ViewModel vm;
-
     // Frame count that have been processed so far in an one second interval to calculate FPS.
     private int frameProcessedInOneSecondInterval = 0;
     private int framesPerSecond = 0;
@@ -89,8 +84,10 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
     @GuardedBy("this")
     private FrameMetadata processingMetaData;
 
+    // create this variable to be exported to API thread
+    private List<Face> detectedFaces;
 
-    protected VisionProcessorBase(Context context, ViewModel vm) {
+    protected VisionProcessorBase(Context context) {
         activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         executor = new ScopedExecutor(TaskExecutors.MAIN_THREAD);
         fpsTimer.scheduleAtFixedRate(
@@ -104,7 +101,6 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
                 /* delay= */ 0,
                 /* period= */ 1000);
         temperatureMonitor = new TemperatureMonitor(context);
-        this.vm = vm;
     }
 
     // -----------------Code for processing single still image----------------------------------------
@@ -121,7 +117,6 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
                     /* shouldShowFps= */ false,
                     frameStartMs);
             mlImage.close();
-
             return;
         }
 
@@ -323,19 +318,13 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
                         graphicOverlay.add(new CameraImageGraphic(graphicOverlay, originalCameraImage));
                     }
                     VisionProcessorBase.this.onSuccess(results, graphicOverlay);
+                    detectedFaces = results;
 
                     List<Float> vitals = this.cid.setVariables(latestImage,
                                                         latestImageMetaData,
-                                                        results, vm);
+                                                        results);
                     //this.cid.writeToDirectory();
                     if (vitals != null && vitals.size() == 2) {
-//                        graphicOverlay.add(
-//                                new VitalsInfoGraphics(
-//                                        graphicOverlay,
-//                                        vitals.get(0),
-//                                        vitals.get(1),
-//                                        shouldShowFps ? framesPerSecond : null));
-
                         graphicOverlay.add(
                                 new VitalsInfoGraphicsNw(
                                         graphicOverlay,
@@ -344,14 +333,6 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
                                         shouldShowFps ? framesPerSecond : null));
                     }
 
-//                    if (!PreferenceUtils.shouldHideDetectionInfo(graphicOverlay.getContext())) {
-//                        graphicOverlay.add(
-//                                new InferenceInfoGraphic(
-//                                        graphicOverlay,
-//                                        currentFrameLatencyMs,
-//                                        currentDetectorLatencyMs,
-//                                        shouldShowFps ? framesPerSecond : null));
-//                    }
                     graphicOverlay.postInvalidate();
                 })
                 .addOnFailureListener(
@@ -398,6 +379,17 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
                         "MlImage is currently not demonstrated for this feature",
                         MlKitException.INVALID_ARGUMENT));
     }
+
+    /** This function will be called to set variable value in CameraSource
+        Created by: Abhash Priyadarshi
+     */
+    public List<Face> returnDetectedFaces() { return detectedFaces; }
+
+    public FrameMetadata returnImageMetadata() { return latestImageMetaData; }
+
+    public ByteBuffer returnLatestImage() { return latestImage; }
+
+
 
     protected abstract void onSuccess(@NonNull T results, @NonNull GraphicOverlay graphicOverlay);
 

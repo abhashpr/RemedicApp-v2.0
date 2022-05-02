@@ -87,9 +87,11 @@ public class FaceGraphic extends Graphic {
         // Draws a circle at the position of the detected face, with the face's track id below.
         float x = translateX(face.getBoundingBox().centerX());
         float y = translateY(face.getBoundingBox().centerY());
-        canvas.drawCircle(x, y, FACE_POSITION_RADIUS, facePositionPaint);
+        // canvas.drawCircle(x, y, FACE_POSITION_RADIUS, facePositionPaint);
 
         // Calculate positions.
+        float faceWidth = face.getBoundingBox().width();
+        float faceHeight = face.getBoundingBox().height();
         float left = x - scale(face.getBoundingBox().width() / 2.0f);
         float top = y - scale(face.getBoundingBox().height() / 2.0f);
         float right = x + scale(face.getBoundingBox().width() / 2.0f);
@@ -132,145 +134,151 @@ public class FaceGraphic extends Graphic {
         yLabelOffset = yLabelOffset - 3 * lineHeight;
         textWidth =
                 Math.max(
-                        textWidth,
-                        idPaints[colorID].measureText(
-                                String.format(Locale.US, "EulerX: %.2f", face.getHeadEulerAngleX())));
+                        textWidth, idPaints[colorID].measureText(
+                                String.format(Locale.US, "EulerX: %.2f",
+                                        face.getHeadEulerAngleX())));
         textWidth =
                 Math.max(
-                        textWidth,
-                        idPaints[colorID].measureText(
-                                String.format(Locale.US, "EulerY: %.2f", face.getHeadEulerAngleY())));
+                        textWidth, idPaints[colorID].measureText(
+                                String.format(Locale.US, "EulerY: %.2f",
+                                        face.getHeadEulerAngleY())));
         textWidth =
                 Math.max(
-                        textWidth,
-                        idPaints[colorID].measureText(
-                                String.format(Locale.US, "EulerZ: %.2f", face.getHeadEulerAngleZ())));
+                        textWidth, idPaints[colorID].measureText(
+                                String.format(Locale.US, "EulerZ: %.2f",
+                                        face.getHeadEulerAngleZ())));
         // Draw labels
-        canvas.drawRect(
-                left - BOX_STROKE_WIDTH,
-                top + yLabelOffset,
-                left + textWidth + (2 * BOX_STROKE_WIDTH),
-                top,
-                labelPaints[colorID]);
-        yLabelOffset += ID_TEXT_SIZE;
-        canvas.drawRect(left, top, right, bottom, boxPaints[colorID]);
-        if (face.getTrackingId() != null) {
-            canvas.drawText("ID: " + face.getTrackingId(), left, top + yLabelOffset, idPaints[colorID]);
-            yLabelOffset += lineHeight;
-        }
+        // canvas.drawRect(
+        //        left - BOX_STROKE_WIDTH,
+        //        top + yLabelOffset,
+        //        left + textWidth + (2 * BOX_STROKE_WIDTH),
+        //        top,
+        //        labelPaints[colorID]);
+        //        yLabelOffset += ID_TEXT_SIZE;
 
-//        PointF forehead_ul = new PointF(0, 0);
-//        PointF forehead_ur = new PointF(0, 0);
-//        PointF forehead_bl = new PointF(0, 0);
-//        PointF forehead_br = new PointF(0, 0);
-//
-//        // Draws all face contours.
-//        for (FaceContour contour : face.getAllContours()) {
-//            int count = 0;
-//            for (PointF point : contour.getPoints()) {
-//                // canvas.drawCircle(
-//                //        translateX(point.x), translateY(point.y), FACE_POSITION_RADIUS, facePositionPaint);
-//                if (contour.getFaceContourType() == 1 && count == 33) {
-//                    forehead_ul = point;
-//                    canvas.drawCircle(
-//                            translateX(point.x), translateY(point.y),
-//                            FACE_POSITION_RADIUS, facePositionPaint);
-//                }
-//
-//                if (contour.getFaceContourType() == 1 && count == 2) {
-//                    forehead_ur = point;
-//                    canvas.drawCircle(
-//                            translateX(point.x), translateY(point.y),
-//                            FACE_POSITION_RADIUS, facePositionPaint);
-//                }
-//
-//                if (contour.getFaceContourType() == 2 && count == 2) {
-//                    forehead_bl = point;
-//                    canvas.drawCircle(
-//                            translateX(point.x), translateY(point.y),
-//                            FACE_POSITION_RADIUS, facePositionPaint);
-//                }
-//
-//                if (contour.getFaceContourType() == 4 && count == 2) {
-//                    forehead_br = point;
-//                    canvas.drawCircle(
-//                            translateX(point.x), translateY(point.y),
-//                            FACE_POSITION_RADIUS, facePositionPaint);
-//                }
-//
-//                        // canvas.drawText(
-//                //        String.valueOf(count), translateX(point.x), translateY(point.y), idPaints[colorID]);
-//                count++;
-//            }
-//
-////            Log.d("LineCoordinates",
-////                    String.valueOf(forehead_ul.x) + " " +
-////                    String.valueOf(forehead_ul.y) + " " +
-////                    String.valueOf(forehead_ur.x) + " " +
-////                    String.valueOf(forehead_ur.y)
-////            );
-//
-//        }
-//
-////        forehead_ul.x = forehead_bl.x;
-////        forehead_ur.x = forehead_br.x;
-////        forehead_ur.y = forehead_ul.y;
-//
-//        // int[] xcoords = new ArrayList<Integer>(); // Create an ArrayList object
-//        //        xcoords.add((int)forehead_ul.x);
-//        //        xcoords.add((int)forehead_ur.x);
-//        //        xcoords.add((int)forehead_br.x);
-//        //        xcoords.add((int)forehead_bl.x);
-//
-//
-//        int xcoords[] = new int[4];
-//
-//        xcoords[0] = (int)forehead_ul.x;
-//        xcoords[1] = (int)forehead_ur.x;
-//        xcoords[2] = (int)forehead_br.x;
-//        xcoords[3] = (int)forehead_bl.x;
-//
-////        int[] ycoords = new ArrayList<Integer>(); // Create an ArrayList object
-////        ycoords.add((int)forehead_ul.y);
-////        ycoords.add((int)forehead_ur.y);
-////        ycoords.add((int)forehead_br.y);
-////        ycoords.add((int)forehead_bl.y);
-//        int ycoords[] = new int[4];
-//
-//        ycoords[0] = (int)forehead_ul.y;
-//        ycoords[1] = (int)forehead_ur.y;
-//        ycoords[2] = (int)forehead_br.y;
-//        ycoords[3] = (int)forehead_bl.y;
-//
-//
-//        // Polygon polygon = new Polygon(xcoords, ycoords, 4);
-//
-//        canvas.drawLine(translateX(forehead_bl.x), translateY(forehead_bl.y),
-//                translateX(forehead_br.x), translateY(forehead_br.y),
-//                facePositionPaint);
-//
-//        canvas.drawLine(translateX(forehead_br.x), translateY(forehead_br.y),
-//                translateX(forehead_ur.x), translateY(forehead_ur.y),
-//                facePositionPaint);
-//
-//        canvas.drawLine(translateX(forehead_ur.x), translateY(forehead_ur.y),
-//                translateX(forehead_ul.x), translateY(forehead_ul.y),
-//                facePositionPaint);
-//
-//        canvas.drawLine(translateX(forehead_ul.x), translateY(forehead_ul.y),
-//                translateX(forehead_bl.x), translateY(forehead_bl.y),
-//                facePositionPaint);
+        // Draw box around detected face
+        // canvas.drawRect(left, top, right, bottom, boxPaints[colorID]);
+        canvas.drawLine(left, top, left + faceWidth * 0.3F, top, boxPaints[4]);
+        canvas.drawLine(left, top, left, top + faceHeight * 0.3F, boxPaints[4]);
 
+        canvas.drawLine(right - faceWidth * 0.3F, top, right, top, boxPaints[4]);
+        canvas.drawLine(right, top, right, top + faceHeight * 0.3F, boxPaints[4]);
+
+        canvas.drawLine(left, bottom, left + faceWidth * 0.3F, bottom, boxPaints[4]);
+        canvas.drawLine(left, bottom - faceHeight * 0.3F, left, bottom, boxPaints[4]);
+
+        canvas.drawLine(right, bottom, right, bottom - faceHeight * 0.3F, boxPaints[4]);
+        canvas.drawLine(right, bottom, right - faceWidth * 0.3F, bottom, boxPaints[4]);
+
+        // Draw edge corners around detected face
+
+        // if (face.getTrackingId() != null) {
+        //     canvas.drawText("ID: " + face.getTrackingId(), left,
+        //                     top + yLabelOffset, idPaints[colorID]);
+        //     yLabelOffset += lineHeight;
+        // }
+
+        /* ------------------- */
+        /* Draw forehead patch */
+        /* ------------------- */
+
+        // PointF forehead_ul = new PointF(0, 0);
+        // PointF forehead_ur = new PointF(0, 0);
+        // PointF forehead_bl = new PointF(0, 0);
+        // PointF forehead_br = new PointF(0, 0);
+        //
+        // // Draws all face contours.
+        // for (FaceContour contour : face.getAllContours()) {
+        //      int count = 0;
+        //      for (PointF point : contour.getPoints()) {
+        //         canvas.drawCircle(translateX(point.x), translateY(point.y), FACE_POSITION_RADIUS, facePositionPaint);
+        //         if (contour.getFaceContourType() == 1 && count == 33) {
+        //           forehead_ul = point;
+        //           canvas.drawCircle(
+        //                  translateX(point.x), translateY(point.y),
+        //                  FACE_POSITION_RADIUS, facePositionPaint);
+        //         }
+        //
+        //         if (contour.getFaceContourType() == 1 && count == 2) {
+        //             forehead_ur = point;
+        //             canvas.drawCircle(
+        //                    translateX(point.x), translateY(point.y),
+        //                    FACE_POSITION_RADIUS, facePositionPaint);
+        //         }
+        //
+        //         if (contour.getFaceContourType() == 2 && count == 2) {
+        //             forehead_bl = point;
+        //             canvas.drawCircle(
+        //                    translateX(point.x), translateY(point.y),
+        //                    FACE_POSITION_RADIUS, facePositionPaint);
+        //         }
+        //
+        //         if (contour.getFaceContourType() == 4 && count == 2) {
+        //             forehead_br = point;
+        //             canvas.drawCircle(
+        //                    translateX(point.x), translateY(point.y),
+        //                    FACE_POSITION_RADIUS, facePositionPaint);
+        //         }
+        //
+        //         canvas.drawText(String.valueOf(count), translateX(point.x), translateY(point.y), idPaints[colorID]);
+        //         count++;
+        //      }
+        // }
+        //
+        //// forehead_ul.x = forehead_bl.x;
+        //// forehead_ur.x = forehead_br.x;
+        //// forehead_ur.y = forehead_ul.y;
+        //
+        //// int[] xcoords = new ArrayList<Integer>(); // Create an ArrayList object
+        //// xcoords.add((int)forehead_ul.x);
+        //// xcoords.add((int)forehead_ur.x);
+        //// xcoords.add((int)forehead_br.x);
+        //// xcoords.add((int)forehead_bl.x);
+        //   int xcoords[] = new int[4];
+        //
+        //   xcoords[0] = (int)forehead_ul.x;
+        //   xcoords[1] = (int)forehead_ur.x;
+        //   xcoords[2] = (int)forehead_br.x;
+        //   xcoords[3] = (int)forehead_bl.x;
+        //
+        //   int[] ycoords = new ArrayList<Integer>(); // Create an ArrayList object
+        //   ycoords.add((int)forehead_ul.y);
+        //   ycoords.add((int)forehead_ur.y);
+        //   ycoords.add((int)forehead_br.y);
+        //   ycoords.add((int)forehead_bl.y);
+        //   int ycoords[] = new int[4];
+        //
+        //   ycoords[0] = (int)forehead_ul.y;
+        //   ycoords[1] = (int)forehead_ur.y;
+        //   ycoords[2] = (int)forehead_br.y;
+        //   ycoords[3] = (int)forehead_bl.y;
+        //
+        //   // Polygon polygon = new Polygon(xcoords, ycoords, 4);
+        //   canvas.drawLine(translateX(forehead_bl.x), translateY(forehead_bl.y),
+        //                   translateX(forehead_br.x), translateY(forehead_br.y),
+        //                   facePositionPaint);
+        //
+        //   canvas.drawLine(translateX(forehead_br.x), translateY(forehead_br.y),
+        //                   translateX(forehead_ur.x), translateY(forehead_ur.y),
+        //                   facePositionPaint);
+        //
+        //   canvas.drawLine(translateX(forehead_ur.x), translateY(forehead_ur.y),
+        //                   translateX(forehead_ul.x), translateY(forehead_ul.y),
+        //                   facePositionPaint);
+        //
+        //   canvas.drawLine(translateX(forehead_ul.x), translateY(forehead_ul.y),
+        //                   translateX(forehead_bl.x), translateY(forehead_bl.y),
+        //                   facePositionPaint);
 
         // Draws smiling and left/right eye open probabilities.
-        if (face.getSmilingProbability() != null) {
-            canvas.drawText(
-                    "Smiling: " + String.format(Locale.US, "%.2f", face.getSmilingProbability()),
-                    left,
-                    top + yLabelOffset,
-                    idPaints[colorID]);
-            yLabelOffset += lineHeight;
-        }
+        // if (face.getSmilingProbability() != null) {
+        //     canvas.drawText(
+        //                    "Smiling: " + String.format(Locale.US, "%.2f", face.getSmilingProbability()),
+        //                    left,
+        //                    top + yLabelOffset,
+        //                    idPaints[colorID]);
+        //     yLabelOffset += lineHeight;
+        //  }
 
         FaceLandmark leftEye = face.getLandmark(FaceLandmark.LEFT_EYE);
         if (face.getLeftEyeOpenProbability() != null) {
@@ -322,20 +330,17 @@ public class FaceGraphic extends Graphic {
                     idPaints[colorID]);
         }
 
-        canvas.drawText(
-                "EulerX: " + face.getHeadEulerAngleX(), left, top + yLabelOffset, idPaints[colorID]);
-        yLabelOffset += lineHeight;
-        canvas.drawText(
-                "EulerY: " + face.getHeadEulerAngleY(), left, top + yLabelOffset, idPaints[colorID]);
-        yLabelOffset += lineHeight;
-        canvas.drawText(
-                "EulerZ: " + face.getHeadEulerAngleZ(), left, top + yLabelOffset, idPaints[colorID]);
+        // canvas.drawText("EulerX: " + face.getHeadEulerAngleX(), left, top + yLabelOffset, idPaints[colorID]);
+        // yLabelOffset += lineHeight;
+        // canvas.drawText("EulerY: " + face.getHeadEulerAngleY(), left, top + yLabelOffset, idPaints[colorID]);
+        // yLabelOffset += lineHeight;
+        // canvas.drawText("EulerZ: " + face.getHeadEulerAngleZ(), left, top + yLabelOffset, idPaints[colorID]);
 
         // Draw facial landmarks
-        drawFaceLandmark(canvas, FaceLandmark.LEFT_EYE);
-        drawFaceLandmark(canvas, FaceLandmark.RIGHT_EYE);
-        drawFaceLandmark(canvas, FaceLandmark.LEFT_CHEEK);
-        drawFaceLandmark(canvas, FaceLandmark.RIGHT_CHEEK);
+        // drawFaceLandmark(canvas, FaceLandmark.LEFT_EYE);
+        // drawFaceLandmark(canvas, FaceLandmark.RIGHT_EYE);
+        // drawFaceLandmark(canvas, FaceLandmark.LEFT_CHEEK);
+        // drawFaceLandmark(canvas, FaceLandmark.RIGHT_CHEEK);
     }
 
     private void drawFaceLandmark(Canvas canvas, @LandmarkType int landmarkType) {
@@ -348,5 +353,4 @@ public class FaceGraphic extends Graphic {
                     facePositionPaint);
         }
     }
-
 }

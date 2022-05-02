@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
+import com.google.mlkit.vision.face.Face;
 
 /**
  * Manages the camera and allows UI updates on top of it (e.g. overlaying extra Graphics or
@@ -95,11 +96,28 @@ public class CameraSource {
      */
     private final IdentityHashMap<byte[], ByteBuffer> bytesToByteBuffer = new IdentityHashMap<>();
 
+    // Dedicate a thread for making API calls
+    /** Created by : Abhash Priyadarshi
+     */
+    private Thread apiThread;
+    private final SignalProcessingRunnable signalProcessingRunnable;
+    private final Object signalProcessorLock = new Object();
+    private GetVitals vitalsProcessor;
+    private List<Face> detectedFaces;
+    private final CropImage cropImage = new CropImage();
+    private ArrayList<Float> signals = new ArrayList<Float>();
+    private long startTime = 0;
+    private long endTime = 0;
+
+
     public CameraSource(Activity activity, GraphicOverlay overlay) {
         this.activity = activity;
         graphicOverlay = overlay;
         graphicOverlay.clear();
         processingRunnable = new FrameProcessingRunnable();
+        signalProcessingRunnable = new SignalProcessingRunnable();
+
+        vitalsProcessor = new GetVitals();
     }
 
     // ==============================================================================================
@@ -114,6 +132,13 @@ public class CameraSource {
 
             if (frameProcessor != null) {
                 frameProcessor.stop();
+            }
+        }
+
+        synchronized (signalProcessorLock) {
+
+            if (vitalsProcessor != null) {
+                vitalsProcessor.stop();
             }
         }
     }
@@ -138,6 +163,11 @@ public class CameraSource {
         processingThread = new Thread(processingRunnable);
         processingRunnable.setActive(true);
         processingThread.start();
+
+        apiThread = new Thread(signalProcessingRunnable, "CamSourceAPI");
+        signalProcessingRunnable.setActive(true);
+        apiThread.start();
+
         return this;
     }
 
@@ -161,6 +191,11 @@ public class CameraSource {
         processingThread = new Thread(processingRunnable, "CamSource");
         processingRunnable.setActive(true);
         processingThread.start();
+
+        apiThread = new Thread(signalProcessingRunnable, "CamSourceAPI");
+        signalProcessingRunnable.setActive(true);
+        apiThread.start();
+
         return this;
     }
 
@@ -174,6 +209,7 @@ public class CameraSource {
      * resources of the underlying detector.
      */
     public synchronized void stop() {
+
         processingRunnable.setActive(false);
         if (processingThread != null) {
             try {
@@ -185,6 +221,19 @@ public class CameraSource {
                 Log.d(TAG, "Frame processing thread interrupted on release.");
             }
             processingThread = null;
+        }
+
+        signalProcessingRunnable.setActive(false);
+        if (apiThread != null) {
+            try {
+                // Wait for the thread to complete to ensure that we can't have multiple threads
+                // executing at the same time (i.e., which would happen if we called start too
+                // quickly after stop).
+                apiThread.join();
+            } catch (InterruptedException e) {
+                Log.d(TAG, "Signal processing thread interrupted on release.");
+            }
+            apiThread = null;
         }
 
         if (camera != null) {
@@ -674,6 +723,10 @@ public class CameraSource {
                                         .build(),
                                 graphicOverlay);
                     }
+
+                    signalProcessingRunnable.setNextSignalBatch(frameProcessor.returnLatestImage(),
+                                                                frameProcessor.returnImageMetadata(),
+                                                                frameProcessor.returnDetectedFaces());
                 } catch (Exception t) {
                     Log.e(TAG, "Exception thrown from receiver.", t);
                 } finally {
@@ -682,6 +735,90 @@ public class CameraSource {
             }
         }
     }
+
+
+    /**
+    Create a new runnable to trigger API calls and send data to the backend
+    Created on: 17.03.2022
+    Creator: Abhash Priyadarshi
+     **/
+
+    private class SignalProcessingRunnable implements Runnable {
+
+        // This lock guards all of the member variables below.
+        private final Object lock = new Object();
+        private boolean active = true;
+
+        // These pending variables hold the state associated with the new frame awaiting processing.
+        private ArrayList<Float> pendingPixelData;
+
+        SignalProcessingRunnable() {}
+
+        /** Marks the runnable as active/not active. Signals any blocked threads to continue. */
+        void setActive(boolean active) {
+            synchronized (lock) {
+                this.active = active;
+                lock.notifyAll();
+            }
+        }
+
+        void setNextSignalBatch(ByteBuffer data, FrameMetadata frameMetadata,
+                                List<Face> results) {
+            // sets batch of signals to be processed
+            // by run() method
+            synchronized (lock) {
+
+                if (pendingPixelData != null) {
+                    pendingPixelData = null;
+                }
+
+                // modify this logic to add pixelAvg to buffer
+                Float pixelAvg = cropImage.getPixelsMean(data, frameMetadata, results);
+                Log.d("PixelAvg", String.valueOf(pixelAvg));
+                // pendingPixelData.add(pixelAvg);
+                // Notify the processor thread if it is waiting on the next frame (see below).
+                lock.notifyAll();
+            }
+        }
+
+        @Override
+        public void run() {
+            ArrayList<Float> data;
+            // call API function in getVitals
+            // getVitals response object adds new graphics
+            // and sends the listener to MAIN_THREAD
+            while (true) {
+                synchronized (lock) {
+                    while (active && (pendingPixelData == null)) {
+                        try {
+                            // Wait for the next frame to be received from the camera, since we
+                            // don't have it yet.
+                            lock.wait();
+                        } catch (InterruptedException e) {
+                            Log.d(TAG, "Frame processing loop terminated.", e);
+                            return;
+                        }
+                    }
+
+                    if (!active) {
+                        // Exit the loop once this camera source is stopped or released.  We check
+                        // this here, immediately after the wait() above, to handle the case where
+                        // setActive(false) had been called, triggering the termination of this
+                        // loop.
+                        return;
+                    }
+
+                    // Hold onto the frame data locally, so that we can use this for detection
+                    // below.  We need to clear pendingPixelData to ensure that this buffer isn't
+                    // recycled back to the camera before we are done using that data.
+                    data = pendingPixelData;
+                    Log.d("setNextSignalBatch", String.valueOf(pendingPixelData));
+                    pendingPixelData = null;
+                }
+            }
+        }
+    }
+
 
     /** Cleans up graphicOverlay and child classes can do their cleanups as well . */
     private void cleanScreen() {
