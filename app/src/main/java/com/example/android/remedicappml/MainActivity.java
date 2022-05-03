@@ -1,6 +1,5 @@
 package com.example.android.remedicappml;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -8,18 +7,18 @@ import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback;
 import androidx.core.content.ContextCompat;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import com.example.android.remedicappml.facedetector.FaceDetectorProcessor;
 import com.google.android.gms.common.annotation.KeepName;
@@ -48,14 +47,14 @@ public final class  MainActivity extends AppCompatActivity
     private TextView bpmValue;
     private TextView spo2Value;
 
+    private ProgressBar progressBar;
+    private int progressStatus = 0;
+    private static int progress;
+    private Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        Log.d(TAG, "onCreate");
-
         setContentView(R.layout.activity_vision_live_preview);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -71,19 +70,6 @@ public final class  MainActivity extends AppCompatActivity
             Log.d(TAG, "graphicOverlay is null");
         }
 
-        // ToggleButton facingSwitch = findViewById(R.id.facing_switch);
-        // facingSwitch.setOnCheckedChangeListener(this);
-
-        // TextView bpmValue = (TextView) findViewById(R.id.bpm_value);
-        // if (bpmValue == null) {
-        //     Log.e(TAG, "bpmValue is null !!" );
-        // }
-
-        // TextView spo2Value = (TextView) findViewById(R.id.spo2_value);
-        // if (spo2Value == null) {
-        //     Log.e(TAG, "spo2value is null !!" );
-        // }
-
         if (allPermissionsGranted()) {
             createCameraSource(selectedModel);
         } else {
@@ -94,7 +80,42 @@ public final class  MainActivity extends AppCompatActivity
             Log.e("OpenCV", "Unable to load OpenCV!");
         else
             Log.d("OpenCV", "OpenCV loaded Successfully!");
-            // viewModel = new ViewModelProvider(this).get(TimeTableViewModel.class);
+
+        Intent intent = new Intent(this, Dashboard.class);
+
+        progressBar = findViewById(R.id.progressBar);
+        progressBar.setMax(200);
+
+        new Thread(new Runnable() {
+            public void run() {
+                while (progressStatus < 200) {
+                    progressStatus = sleepThread();
+                    handler.post(new Runnable() {
+                        public void run() {
+                            progressBar.setProgress(progressStatus);
+                        }
+                    });
+                }
+                handler.post(new Runnable() {
+                    public void run() {
+                        progressBar.setVisibility(View.GONE);
+                        if (progressStatus == 200) {
+                            startActivity(intent);
+                        }
+                    }
+                });
+            }
+
+            private int sleepThread() {
+                try {
+                    Thread.sleep(150);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                return ++progress;
+            }
+        }).start();
+
     }
 
 

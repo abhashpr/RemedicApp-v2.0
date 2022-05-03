@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Larger blue circle -->
+    <item>
+        <shape android:shape="oval">
+            <padding
+                android:bottom="20dp"
+                android:left="20dp"
+                android:right="20dp"
+                android:top="20dp" />
+            <size
+                android:width="70dp"
+                android:height="70dp" />
+            <stroke
+                android:width="20dp"
+                android:color="#20A8C4F4" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="oval">
+            <padding
+                android:bottom="20dp"
+                android:left="20dp"
+                android:right="20dp"
+                android:top="20dp" />
+            <size
+                android:width="70dp"
+                android:height="70dp" />
+            <stroke
+                android:width="20dp"
+                android:color="#36A8C4F4" />
+        </shape>
+    </item>
+    <!-- Green circle in middle -->
+    <item>
+        <shape android:shape="oval">
+            <padding
+                android:bottom="20dp"
+                android:left="20dp"
+                android:right="20dp"
+                android:top="20dp" />
+            <size
+                android:width="70dp"
+                android:height="70dp" />
+            <stroke
+                android:width="20dp"
+                android:color="#6DA8C4F4" />
+        </shape>
+    </item>
+    <!-- Smaller red circle at front -->
+    <item>
+        <shape android:shape="oval">
+            <size
+                android:width="70dp"
+                android:height="70dp" />
+            <solid android:color="#A3A8C4F4" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="oval">
+            <size
+                android:width="50dp"
+                android:height="50dp" />
+            <solid android:color="#6AE2E7F1" />
+        </shape>
+    </item>
+</layer-list>

@@ -16,10 +16,20 @@
         <entry key="..\:/Abhash/android/MyApplication/app/src/main/res/layout/toggle_style.xml" value="0.1" />
         <entry key="..\:/android/MyApplication/app/src/main/res/layout/activity_main.xml" value="0.171875" />
         <entry key="..\:/android/MyApplication/app/src/main/res/layout/activity_vision_live_preview.xml" value="0.1234375" />
+        <entry key="..\:/android/remedic_app_v_2/app/src/main/res/drawable-hdpi/concentric_circles.xml" value="0.1195" />
+        <entry key="..\:/android/remedic_app_v_2/app/src/main/res/drawable-hdpi/curved_rect_active.xml" value="0.1195" />
+        <entry key="..\:/android/remedic_app_v_2/app/src/main/res/drawable-hdpi/curved_rectangle.xml" value="0.1195" />
+        <entry key="..\:/android/remedic_app_v_2/app/src/main/res/drawable-hdpi/ic_baseline_arrow_back_ios_24.xml" value="0.1195" />
+        <entry key="..\:/android/remedic_app_v_2/app/src/main/res/drawable-hdpi/ic_baseline_menu_24.xml" value="0.1195" />
+        <entry key="..\:/android/remedic_app_v_2/app/src/main/res/drawable-hdpi/ic_blood_pressure_selector_inactive.xml" value="0.1195" />
+        <entry key="..\:/android/remedic_app_v_2/app/src/main/res/drawable-hdpi/ic_respiration_rate_selector_active.xml" value="0.1195" />
+        <entry key="..\:/android/remedic_app_v_2/app/src/main/res/drawable-hdpi/icon_background.xml" value="0.1195" />
         <entry key="..\:/android/remedic_app_v_2/app/src/main/res/drawable/curved_rectangle.xml" value="0.19583333333333333" />
         <entry key="..\:/android/remedic_app_v_2/app/src/main/res/drawable/ic_baseline_videocam_24.xml" value="0.10260416666666666" />
         <entry key="..\:/android/remedic_app_v_2/app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="..\:/android/remedic_app_v_2/app/src/main/res/layout/activity_vision_live_preview.xml" value="0.13958333333333334" />
+        <entry key="..\:/android/remedic_app_v_2/app/src/main/res/layout/dashboard.xml" value="0.1" />
+        <entry key="..\:/android/remedic_app_v_2/app/src/main/res/layout/dashboard_toolbar.xml" value="0.10833333333333334" />
         <entry key="..\:/android/remedic_app_v_2/app/src/main/res/layout/toolbar.xml" value="0.1796875" />
       </map>
     </option>

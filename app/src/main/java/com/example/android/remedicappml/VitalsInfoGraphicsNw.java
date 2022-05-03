@@ -109,7 +109,7 @@ public class VitalsInfoGraphicsNw extends GraphicOverlay.Graphic
         float screenWidth = canvas.getWidth();
         float screenHeight = canvas.getHeight();
         float screenWidthFrac = 0.9f;
-        float topMarginFrac = 0.74F;
+        float topMarginFrac = 0.68F;
 
         String s;
         float strPos = 0f;
@@ -136,16 +136,14 @@ public class VitalsInfoGraphicsNw extends GraphicOverlay.Graphic
         strPos = rectLeft + leftMargin;
 
         drawReadings(canvas, strPos, String.valueOf(bpm), "HEART RATE", cy, bp);
-
         linePos = screenWidth * (1 - screenWidthFrac)/2 + rectWidth/3;
         canvas.drawLine(linePos, dividerTopY, linePos, dividerBottomY, dividerPaint);
 
         strPos = screenWidth * (1 - screenWidthFrac)/2 + rectWidth/2;
         drawReadings(canvas, strPos, "99", "SPO2 (%)", cy, bp);
-
         linePos = screenWidth * (1 - screenWidthFrac)/2 + 2 * (rectWidth/3);
-        canvas.drawLine(linePos, dividerTopY, linePos, dividerBottomY, dividerPaint);
 
+        canvas.drawLine(linePos, dividerTopY, linePos, dividerBottomY, dividerPaint);
         strPos = rectLeft + rectWidth - rightMargin;
         drawReadings(canvas, strPos, "3", "SI(/10)", cy, bp);
 
