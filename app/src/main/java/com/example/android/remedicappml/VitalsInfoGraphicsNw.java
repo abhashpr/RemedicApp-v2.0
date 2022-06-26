@@ -109,7 +109,7 @@ public class VitalsInfoGraphicsNw extends GraphicOverlay.Graphic
         float screenWidth = canvas.getWidth();
         float screenHeight = canvas.getHeight();
         float screenWidthFrac = 0.9f;
-        float topMarginFrac = 0.68F;
+        float topMarginFrac = 0.7F;
 
         String s;
         float strPos = 0f;

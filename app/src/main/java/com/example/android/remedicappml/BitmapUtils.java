@@ -33,8 +33,8 @@ public class BitmapUtils {
     public static Bitmap getBitmap(ByteBuffer data, FrameMetadata metadata) {
         data.rewind();
         byte[] imageInBuffer = new byte[data.limit()];
-        data.get(imageInBuffer, 0, imageInBuffer.length);
         try {
+            data.get(imageInBuffer, 0, imageInBuffer.length);
             YuvImage image =
                     new YuvImage(
                             imageInBuffer, ImageFormat.NV21, metadata.getWidth(), metadata.getHeight(), null);

@@ -14,6 +14,8 @@ import com.google.mlkit.vision.face.FaceDetection;
 import com.google.mlkit.vision.face.FaceDetector;
 import com.google.mlkit.vision.face.FaceDetectorOptions;
 import com.google.mlkit.vision.face.FaceLandmark;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -24,7 +26,7 @@ public class FaceDetectorProcessor extends VisionProcessorBase<List<Face>> {
 
     private final FaceDetector detector;
 
-    public FaceDetectorProcessor(Context context) {
+    public FaceDetectorProcessor(Context context, ArrayList<Float> signals) {
         super(context);
         FaceDetectorOptions faceDetectorOptions = PreferenceUtils.getFaceDetectorOptions(context);
         Log.v(MANUAL_TESTING_LOG, "Face detector options: " + faceDetectorOptions);

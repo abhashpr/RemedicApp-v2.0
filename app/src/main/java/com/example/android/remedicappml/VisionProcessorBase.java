@@ -18,7 +18,6 @@ import android.widget.Toast;
 import androidx.annotation.GuardedBy;
 import androidx.camera.core.ExperimentalGetImage;
 import androidx.camera.core.ImageProxy;
-import androidx.lifecycle.ViewModel;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskExecutors;
@@ -70,6 +69,9 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
     // Frame count that have been processed so far in an one second interval to calculate FPS.
     private int frameProcessedInOneSecondInterval = 0;
     private int framesPerSecond = 0;
+
+    // Added to send vitals to cropImage object
+    public List<Float> signals;
 
     // To keep the latest images and its metadata.
     @GuardedBy("this")
@@ -323,13 +325,17 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
                     List<Float> vitals = this.cid.setVariables(latestImage,
                                                         latestImageMetaData,
                                                         results);
+                    // Changed by: Abhash Priyadarshi
+                    // Date: 22-05-2022
+                    // Stored values in variable to be passed to dashboard intent
+                    signals = vitals;
                     //this.cid.writeToDirectory();
                     if (vitals != null && vitals.size() == 2) {
                         graphicOverlay.add(
                                 new VitalsInfoGraphicsNw(
                                         graphicOverlay,
-                                        vitals.get(0),
-                                        vitals.get(1),
+                                        Math.round(vitals.get(0)/2),
+                                        Math.round(vitals.get(1)),
                                         shouldShowFps ? framesPerSecond : null));
                     }
 
@@ -385,11 +391,11 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
      */
     public List<Face> returnDetectedFaces() { return detectedFaces; }
 
+    public List<Float> returnSignals() { return signals; }
+
     public FrameMetadata returnImageMetadata() { return latestImageMetaData; }
 
     public ByteBuffer returnLatestImage() { return latestImage; }
-
-
 
     protected abstract void onSuccess(@NonNull T results, @NonNull GraphicOverlay graphicOverlay);
 

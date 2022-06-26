@@ -139,7 +139,8 @@ public final class CropImage {
             } else {
                 this.bitmap = BitmapUtils.getBitmap(data, frameMetadata);
                 // if (this.bitmap != null) writeToDirectory();
-                return convertToMatrix(this.bitmap, face);
+                if (this.bitmap != null)
+                    return convertToMatrix(this.bitmap, face);
             }
         }
         return vitals;

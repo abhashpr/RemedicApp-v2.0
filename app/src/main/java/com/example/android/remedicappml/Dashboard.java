@@ -3,6 +3,7 @@ package com.example.android.remedicappml;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 import androidx.appcompat.content.res.AppCompatResources;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class Dashboard extends Activity {
     private Intent mainActivity;
@@ -19,7 +21,7 @@ public class Dashboard extends Activity {
             stress_index_selector, respiration_rate_selector,
             heart_rate_variability_selector, blood_pressure_selector,
             activeView;
-    private TextView graphText;
+    private TextView graphText, mainReading;
     private final HashMap<String, Integer> mapping = new HashMap<>();
     private final HashMap<String, String> strMap = new HashMap<>();
     private int readingsUserControlCount, activeSelector;
@@ -36,6 +38,15 @@ public class Dashboard extends Activity {
 
         mygraph = findViewById(R.id.myGraph);
         graphText = findViewById(R.id.graph_text);
+        mainReading = findViewById(R.id.mainReadingText);
+
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            UserVitals uservitals = (UserVitals) getIntent().getSerializableExtra("vitals");
+            //The key argument here must match that used in the other activity
+            mainReading.setText(String.valueOf(Math.round(uservitals.getBpm()/2)));
+            // Log.d("PassedValue", String.valueOf(uservitals.getBpm()));
+        }
 
         backArrow = findViewById(R.id.back_arrow);
         type_of_reading_user_controls = findViewById(R.id.type_of_reading_user_controls);
@@ -47,17 +58,21 @@ public class Dashboard extends Activity {
 
         heart_beat_selector = findViewById(R.id.heart_beat_selector);
         myFunc("heart_beat_selector", heart_beat_selector);
+
         spo2_selector = findViewById(R.id.spo2_selector);
         myFunc("spo2_selector", spo2_selector);
+
         stress_index_selector = findViewById(R.id.stress_index_selector);
         myFunc("stress_index_selector", stress_index_selector);
+
         respiration_rate_selector = findViewById(R.id.respiration_rate_selector);
         myFunc("respiration_rate_selector", respiration_rate_selector);
+
         heart_rate_variability_selector = findViewById(R.id.heart_rate_variability_selector);
         myFunc("heart_rate_variability_selector", heart_rate_variability_selector);
+
         blood_pressure_selector = findViewById(R.id.blood_pressure_selector);
         myFunc("blood_pressure_selector", blood_pressure_selector);
-
 
         backArrow.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,7 +80,6 @@ public class Dashboard extends Activity {
                 startActivity(mainActivity);
             }
         });
-
     }
 
     private void mapString2Drawables() {

@@ -24,6 +24,7 @@ import com.example.android.remedicappml.facedetector.FaceDetectorProcessor;
 import com.google.android.gms.common.annotation.KeepName;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import org.opencv.android.OpenCVLoader;
@@ -44,13 +45,19 @@ public final class  MainActivity extends AppCompatActivity
     private static final String FACE_DETECTION = "Face Detection";
     private String selectedModel = FACE_DETECTION;
 
-    private TextView bpmValue;
-    private TextView spo2Value;
-
     private ProgressBar progressBar;
     private int progressStatus = 0;
     private static int progress;
     private Handler handler = new Handler();
+
+    FaceDetectorProcessor faceDetectorProcessor;
+
+    /* Created this variable on 06.05.2022
+     to pass this to FaceDetector processor
+     The calculated value will be passed to
+     dashboard page
+    */
+    private final ArrayList<Float> signals = new ArrayList<Float>(2);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +88,7 @@ public final class  MainActivity extends AppCompatActivity
         else
             Log.d("OpenCV", "OpenCV loaded Successfully!");
 
-        Intent intent = new Intent(this, Dashboard.class);
+        // Intent intent = new Intent(this, Dashboard.class);
 
         progressBar = findViewById(R.id.progressBar);
         progressBar.setMax(200);
@@ -100,7 +107,10 @@ public final class  MainActivity extends AppCompatActivity
                     public void run() {
                         progressBar.setVisibility(View.GONE);
                         if (progressStatus == 200) {
-                            startActivity(intent);
+                            List<Float> vitals = faceDetectorProcessor.returnSignals();
+                            // intent.putExtra("vitals", (Serializable) faceDetectorProcessor.returnSignals());
+                            // startActivity(intent);
+                            sendUserVitals(vitals.get(0), vitals.get(1), 0F);
                         }
                     }
                 });
@@ -115,9 +125,20 @@ public final class  MainActivity extends AppCompatActivity
                 return ++progress;
             }
         }).start();
-
+        faceDetectorProcessor = new FaceDetectorProcessor(this, signals);
     }
 
+    private void sendUserVitals(Float bpm, Float spo2, Float si) {
+        UserVitals uservitals = new UserVitals();
+        uservitals.setBpm(bpm);
+        uservitals.setSpo2(spo2);
+        uservitals.setSI(si);
+        Intent intent = new Intent(MainActivity.this, Dashboard.class);
+        Bundle b = new Bundle();
+        b.putSerializable("vitals", uservitals);
+        intent.putExtras(b);
+        startActivity(intent);
+    }
 
     @Override
     public void onResume() {
@@ -233,7 +254,7 @@ public final class  MainActivity extends AppCompatActivity
 
         try {
             Log.i(TAG, "Using Face Detector Processor");
-            cameraSource.setMachineLearningFrameProcessor(new FaceDetectorProcessor(this));
+            cameraSource.setMachineLearningFrameProcessor(faceDetectorProcessor);
         } catch (RuntimeException e) {
           Log.e(TAG, "Can not create image processor: " + model, e);
           Toast.makeText(
