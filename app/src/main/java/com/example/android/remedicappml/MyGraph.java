@@ -28,7 +28,7 @@ public class MyGraph extends View implements ValueAnimator.AnimatorUpdateListene
     private final int gridColor = getResources().getColor(R.color.teal_700);
     private final int guidelineColor = getResources().getColor(R.color.gray);
     private final int graphLineColor = getResources().getColor(R.color.blue);
-    private final int graphGridBaseColor = getResources().getColor(R.color.darkGray);
+    private final int graphGridBaseColor = getResources().getColor(R.color.shady);
     private final int graphNormalRange = getResources().getColor(R.color.teal_200);
     private final int textColor = getResources().getColor(R.color.black);
 
@@ -117,13 +117,13 @@ public class MyGraph extends View implements ValueAnimator.AnimatorUpdateListene
 
         final int height = getHeight();
         final int width = getWidth();
-        final float gridLeft = mPadding;
+        final float gridLeft = 0;
         final float gridBottom = height - mPadding;
         final float gridTop = mPadding;
         final float gridRight = width - mPadding;
 
         // Draw Gridlines
-        canvas.drawLine(gridLeft+2*mPadding, gridBottom, gridRight, gridBottom, mGridBaseAxis);
+        canvas.drawLine(gridLeft+3*mPadding, gridBottom, gridRight, gridBottom, mGridBaseAxis);
 
         // Draw guidelines
         float guideLineSpacing = (gridBottom - gridTop) / 5f;
@@ -131,7 +131,7 @@ public class MyGraph extends View implements ValueAnimator.AnimatorUpdateListene
         for (int i = 0; i < 5; i++) {
             y = gridTop + i * guideLineSpacing;
             canvas.drawText(String.valueOf(10F*(i+1)), gridLeft, y, mAxisText);
-            canvas.drawLine(gridLeft+2*mPadding, y, gridRight, y, mGuidelinePaint);
+            canvas.drawLine(gridLeft+3*mPadding, y, gridRight, y, mGuidelinePaint);
             //if (i == 2 || i == 3)
             //   canvas.drawLine(gridLeft, y, gridRight, y, mNormalRangePaint);
             //
@@ -150,7 +150,7 @@ public class MyGraph extends View implements ValueAnimator.AnimatorUpdateListene
         int counter = 1;
         float prevX = 0;
         float prevY = 0;
-        float X = gridLeft + 2 * mPadding + spacing + columnWidth/2;
+        float X = gridLeft + 3 * mPadding + spacing + columnWidth/2;
         float Y;
         // Draw bar peaks
         for (float percentage: data) {
