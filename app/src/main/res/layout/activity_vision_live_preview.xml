@@ -52,12 +52,11 @@
 
         <TextView
             android:id="@+id/user_bpm"
-            android:layout_width="70dp"
+            android:layout_width="111dp"
             android:layout_height="70dp"
-            android:text="60"
+            android:text="60.0"
             android:textColor="@color/white"
-            android:textSize="50sp">
-        </TextView>
+            android:textSize="30sp"></TextView>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
