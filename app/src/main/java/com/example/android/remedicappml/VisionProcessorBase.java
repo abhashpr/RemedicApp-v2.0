@@ -53,6 +53,8 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
     private final ScopedExecutor executor;
     private final TemperatureMonitor temperatureMonitor;
     private final CropImage cid = new CropImage();
+    private final DataModel dataModel = new DataModel();
+    private final ArrayList<Integer> fps_list = new ArrayList<Integer>();
 
     // Whether this processor is already shut down
     private boolean isShutdown;
@@ -322,6 +324,7 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
                     VisionProcessorBase.this.onSuccess(results, graphicOverlay);
                     detectedFaces = results;
 
+                    fps_list.add(framesPerSecond);
                     List<Float> vitals = this.cid.setVariables(latestImage,
                                                         latestImageMetaData,
                                                         results);
@@ -329,7 +332,7 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
                     // Date: 22-05-2022
                     // Stored values in variable to be passed to dashboard intent
                     signals = vitals;
-                    //this.cid.writeToDirectory();
+                    // this.cid.writeToDirectory();
                     if (vitals != null && vitals.size() == 2) {
                         graphicOverlay.add(
                                 new VitalsInfoGraphicsNw(
@@ -338,6 +341,12 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
                                         Math.round(vitals.get(1)),
                                         shouldShowFps ? framesPerSecond : null));
                     }
+
+                    /* Add a section to capture the vitals to be sent through APIs
+                     */
+                    dataModel.set_beats_per_minute(vitals.get(0));
+                    dataModel.set_fps(fps_list);
+                    dataModel.set_data_model(cid.bAvgList, cid.rAvgList, cid.gAvgList);
 
                     graphicOverlay.postInvalidate();
                 })
@@ -391,7 +400,12 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
      */
     public List<Face> returnDetectedFaces() { return detectedFaces; }
 
+    /* Added these two functions to send the data to API and dashboard intent
+      Created by: Abhash Priyadarshi
+      Created on: 23-07-2022
+     */
     public List<Float> returnSignals() { return signals; }
+    public DataModel returnDataModel() { return dataModel; }
 
     public FrameMetadata returnImageMetadata() { return latestImageMetaData; }
 

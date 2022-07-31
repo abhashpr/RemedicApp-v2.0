@@ -8,6 +8,9 @@ import android.graphics.PointF;
 import android.os.Environment;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.google.mlkit.vision.face.Face;
 import com.google.mlkit.vision.face.FaceContour;
 
@@ -28,14 +31,18 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 
 public final class CropImage {
 
     private static final String TAG = "CropImage";
     private static final String VIDEO_DIRECTORY_NAME = "RemedicApp";
+    private static final Integer TIME_LAG_VITALS = 10;
 
     private List<Face> faces;
     private Bitmap bitmap;
@@ -55,6 +62,13 @@ public final class CropImage {
     // Arraylist
     public ArrayList<Double> RedAvgList = new ArrayList<Double>();
     public ArrayList<Double> BlueAvgList = new ArrayList<Double>();
+    public ArrayList<Double> GreenAvgList = new ArrayList<Double>();
+
+    public ArrayList<Double> rAvgList = new ArrayList<Double>();
+    public ArrayList<Double> bAvgList = new ArrayList<Double>();
+    public ArrayList<Double> gAvgList = new ArrayList<Double>();
+
+    public ArrayList<Double> Blanks = new ArrayList<Double>();
     public int counter = 0;
 
     private Context context;
@@ -78,11 +92,9 @@ public final class CropImage {
 
         Mat src = new Mat();
         Utils.bitmapToMat(bitmap, src);
-
         Mat mask =  new Mat(new Size(src.cols(), src.rows()), CvType.CV_8UC1);
         mask.setTo(new Scalar(0.0));
         Scalar white = new Scalar(255, 255, 255);
-
         PointF forehead_ul = new PointF(0, 0);
         PointF forehead_ur = new PointF(0, 0);
         PointF forehead_bl = new PointF(0, 0);
@@ -116,15 +128,11 @@ public final class CropImage {
                 count++;
             }
         }
-
         polyPoints.fromList(points);
         Imgproc.fillConvexPoly(mask, polyPoints, white);
-
         List<Mat> lab_list = new ArrayList(3);
         Core.split(src, lab_list);
-
         Scalar RedAvg = Core.mean(lab_list.get(2), mask);
-
         return RedAvg.val[0];
     }
 
@@ -224,28 +232,43 @@ public final class CropImage {
         polyPoints.fromList(points);
         Imgproc.fillConvexPoly(mask, polyPoints, white);
 
-        List<Mat> lab_list = new ArrayList(3);
-        Core.split(src, lab_list);
+        ArrayList<Mat> dst = new ArrayList(3);
+        Core.split(src, dst);
 
-        Scalar RedAvg = Core.mean(lab_list.get(2), mask);
-        // Log.d(TAG, String.valueOf(RedAvg));
+        Scalar BlueAvg = Core.mean(dst.get(0), mask);
+        Scalar GreenAvg = Core.mean(dst.get(1), mask);
+        Scalar RedAvg = Core.mean(dst.get(2), mask);
+
         RedAvgList.add(RedAvg.val[0]);
+
+        bAvgList.add(BlueAvg.val[0]);
+        gAvgList.add(GreenAvg.val[0]);
+        rAvgList.add(RedAvg.val[0]);
 
         long endTime = System.currentTimeMillis();
         double totalTimeInSecs = (endTime - startTime) / 1000d; //to convert time to seconds
         counter++;
 
-        if (totalTimeInSecs >= 10) { //when 30 seconds of measuring passes do the following " we chose 30 seconds to take half sample since 60 seconds is normally a full sample of the heart beat
+        /** Created By: Abhash Priyadarshi
+          * Created on: 23/07/2022
+          * When 30 seconds of measuring passes do the following "we chose 30 seconds
+          * to take half sample since 60 seconds is normally a full sample of the heart
+          * beat
+         */
+        if (totalTimeInSecs >= TIME_LAG_VITALS) {
 
             startTime = System.currentTimeMillis();
             SamplingFreq = (counter / totalTimeInSecs);
-            //Double[] Red = RedAvgList.toArray(new Double[RedAvgList.size()]);
-            //Double[] Blue = BlueAvgList.toArray(new Double[BlueAvgList.size()]);
+            // Double[] Red = RedAvgList.toArray(new Double[RedAvgList.size()]);
+            // Double[] Blue = BlueAvgList.toArray(new Double[BlueAvgList.size()]);
             Double[] Red = RedAvgList.toArray(new Double[RedAvgList.size()]);
             Double HRFreq = FFT.FFT(Red, counter, SamplingFreq);
             Float bpm = (float) ceil(HRFreq * 60);
 
+            // reset the counter to start counting new frames
             counter = 0;
+            // clear the data points so far
+            RedAvgList.clear();
             // Log.d(TAG, Thread.currentThread().getName());
             Log.d(TAG, "Heart Beat (per minute) : " + (String.valueOf(bpm)));
             vitals.set(0, bpm);

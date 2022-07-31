@@ -17,18 +17,22 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.remedicappml.api.RetrofitClient;
+import com.example.android.remedicappml.api.UploadSignals;
 import com.example.android.remedicappml.facedetector.FaceDetectorProcessor;
 import com.google.android.gms.common.annotation.KeepName;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import org.opencv.android.OpenCVLoader;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 @KeepName
 public final class  MainActivity extends AppCompatActivity
@@ -43,12 +47,12 @@ public final class  MainActivity extends AppCompatActivity
     private CameraSourcePreview preview;
     private GraphicOverlay graphicOverlay;
     private static final String FACE_DETECTION = "Face Detection";
-    private String selectedModel = FACE_DETECTION;
+    private final String selectedModel = FACE_DETECTION;
 
     private ProgressBar progressBar;
     private int progressStatus = 0;
     private static int progress;
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
 
     FaceDetectorProcessor faceDetectorProcessor;
 
@@ -57,7 +61,7 @@ public final class  MainActivity extends AppCompatActivity
      The calculated value will be passed to
      dashboard page
     */
-    private final ArrayList<Float> signals = new ArrayList<Float>(2);
+    private final ArrayList<Float> signals = new ArrayList<>(2);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,8 +112,12 @@ public final class  MainActivity extends AppCompatActivity
                         progressBar.setVisibility(View.GONE);
                         if (progressStatus == 200) {
                             List<Float> vitals = faceDetectorProcessor.returnSignals();
+                            DataModel dataModel = faceDetectorProcessor.returnDataModel();
+
                             // intent.putExtra("vitals", (Serializable) faceDetectorProcessor.returnSignals());
                             // startActivity(intent);
+
+                            postData(dataModel);
                             sendUserVitals(vitals.get(0), vitals.get(1), 0F);
                         }
                     }
@@ -138,6 +146,35 @@ public final class  MainActivity extends AppCompatActivity
         b.putSerializable("vitals", uservitals);
         intent.putExtras(b);
         startActivity(intent);
+    }
+
+    private void postData(DataModel modal) {
+
+        Retrofit retrofit = new RetrofitClient().getClient();
+        UploadSignals retrofitAPI = retrofit.create(UploadSignals.class);
+
+        // calling a method to create a post and passing our modal class.
+        Call<DataModel> call = retrofitAPI.createPost(modal);
+
+        // on below line we are executing our method.
+        call.enqueue(new Callback<DataModel>() {
+            @Override
+            public void onResponse(Call<DataModel> call, Response<DataModel> response) {
+                // this method is called when we get response from our api.
+                Toast.makeText(MainActivity.this, "Data added to API", Toast.LENGTH_SHORT).show();
+
+                // we are getting response from our body
+                // and passing it to our modal class.
+                DataModel responseFromAPI = response.body();
+            }
+
+            @Override
+            public void onFailure(Call<DataModel> call, Throwable t) {
+                // setting text to our text view when
+                // we get error response from API.
+                Toast.makeText(MainActivity.this, t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
