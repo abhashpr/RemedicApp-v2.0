@@ -38,7 +38,27 @@
         app:layout_constraintLeft_toLeftOf="@id/preview_view"
         app:layout_constraintRight_toRightOf="@id/preview_view"
         app:layout_constraintTop_toTopOf="@+id/preview_view" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:id="@+id/user_readings"
+        android:layout_height="70dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="450dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@drawable/curved_rectangle" >
 
+        <TextView
+            android:id="@+id/user_bpm"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:text="60"
+            android:textColor="@color/white"
+            android:textSize="50sp">
+        </TextView>
+    </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:id="@+id/user_controls"

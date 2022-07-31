@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.remedicappml.api.RetrofitClient;
@@ -46,6 +47,7 @@ public final class  MainActivity extends AppCompatActivity
     private CameraSource cameraSource = null;
     private CameraSourcePreview preview;
     private GraphicOverlay graphicOverlay;
+    private TextView user_bpm;
     private static final String FACE_DETECTION = "Face Detection";
     private final String selectedModel = FACE_DETECTION;
 
@@ -81,6 +83,8 @@ public final class  MainActivity extends AppCompatActivity
             Log.d(TAG, "graphicOverlay is null");
         }
 
+        user_bpm = findViewById(R.id.user_bpm);
+
         if (allPermissionsGranted()) {
             createCameraSource(selectedModel);
         } else {
@@ -94,6 +98,7 @@ public final class  MainActivity extends AppCompatActivity
 
         // Intent intent = new Intent(this, Dashboard.class);
 
+
         progressBar = findViewById(R.id.progressBar);
         progressBar.setMax(200);
 
@@ -103,7 +108,9 @@ public final class  MainActivity extends AppCompatActivity
                     progressStatus = sleepThread();
                     handler.post(new Runnable() {
                         public void run() {
+                            List<Float> vitals = faceDetectorProcessor.returnSignals();
                             progressBar.setProgress(progressStatus);
+                            user_bpm.setText(String.valueOf(vitals.get(0)));
                         }
                     });
                 }
@@ -113,10 +120,6 @@ public final class  MainActivity extends AppCompatActivity
                         if (progressStatus == 200) {
                             List<Float> vitals = faceDetectorProcessor.returnSignals();
                             DataModel dataModel = faceDetectorProcessor.returnDataModel();
-
-                            // intent.putExtra("vitals", (Serializable) faceDetectorProcessor.returnSignals());
-                            // startActivity(intent);
-
                             postData(dataModel);
                             sendUserVitals(vitals.get(0), vitals.get(1), 0F);
                         }
