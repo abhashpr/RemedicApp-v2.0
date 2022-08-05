@@ -26,7 +26,7 @@ public class FaceDetectorProcessor extends VisionProcessorBase<List<Face>> {
 
     private final FaceDetector detector;
 
-    public FaceDetectorProcessor(Context context, ArrayList<Float> signals) {
+    public FaceDetectorProcessor(Context context) {
         super(context);
         FaceDetectorOptions faceDetectorOptions = PreferenceUtils.getFaceDetectorOptions(context);
         Log.v(MANUAL_TESTING_LOG, "Face detector options: " + faceDetectorOptions);

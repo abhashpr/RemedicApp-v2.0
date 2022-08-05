@@ -2,14 +2,10 @@ package com.example.android.remedicappml;
 
 import static java.lang.Math.ceil;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.os.Environment;
 import android.util.Log;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.google.mlkit.vision.face.Face;
 import com.google.mlkit.vision.face.FaceContour;
@@ -31,12 +27,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Locale;
+import java.util.Objects;
 
 public final class CropImage {
 
@@ -44,118 +39,145 @@ public final class CropImage {
     private static final String VIDEO_DIRECTORY_NAME = "RemedicApp";
     private static final Integer TIME_LAG_VITALS = 10;
 
-    private List<Face> faces;
-    private Bitmap bitmap;
-
-    // Freq + timer variable
+    // Freq + Timer variable
     private static long startTime = 0;
-    private double SamplingFreq;
-
-    // SPO2 variables
-    private static double RedBlueRatio = 0;
-    double Stdr = 0;
-    double Stdb = 0;
-    double sumred = 0;
-    double sumblue = 0;
-    public int o2;
 
     // Arraylist
-    public ArrayList<Double> RedAvgList = new ArrayList<Double>();
-    public ArrayList<Double> BlueAvgList = new ArrayList<Double>();
-    public ArrayList<Double> GreenAvgList = new ArrayList<Double>();
+    private final ArrayList<Double> RedAvgList = new ArrayList<>();
+    private final ArrayList<Double> BlueAvgList = new ArrayList<>();
+    private final ArrayList<Double> GreenAvgList = new ArrayList<>();
 
-    public ArrayList<Double> rAvgList = new ArrayList<Double>();
-    public ArrayList<Double> bAvgList = new ArrayList<Double>();
-    public ArrayList<Double> gAvgList = new ArrayList<Double>();
+    public ArrayList<Double> rAvgList = new ArrayList<>();
+    public ArrayList<Double> bAvgList = new ArrayList<>();
+    public ArrayList<Double> gAvgList = new ArrayList<>();
 
-    public ArrayList<Double> Blanks = new ArrayList<Double>();
-    public int counter = 0;
+    private int counter = 0;
 
-    private Context context;
-    private final ArrayList<Float> vitals = new ArrayList<Float>(2);
+    private final ArrayList<Float> vitals = new ArrayList<>(2);
+    public HashMap<String, HashMap<String, ArrayList<Double>>> data = new HashMap<>();
 
     public CropImage() {
+        // Initialize vitals
         vitals.add(0, 0f);
         vitals.add(1, 0f);
+
+        // Initialize data
+        // Forehead
+        HashMap<String, ArrayList<Double>> fmap = new HashMap<>();
+        ArrayList<Double> fral = new ArrayList<>();
+        ArrayList<Double> fbal = new ArrayList<>();
+        ArrayList<Double> fgal = new ArrayList<>();
+
+        fral.add(0.0); fbal.add(0.0); fgal.add(0.0);
+        fmap.put("RedAvg", fral); fmap.put("BlueAvg", fbal); fmap.put("GreenAvg", fgal);
+        data.put("forehead", fmap);
+
+        // Left Cheek
+        HashMap<String, ArrayList<Double>> lcmap = new HashMap<>();
+        ArrayList<Double> lcral = new ArrayList<>();
+        ArrayList<Double> lcbal = new ArrayList<>();
+        ArrayList<Double> lcgal = new ArrayList<>();
+
+        lcral.add(0.0); lcbal.add(0.0); lcgal.add(0.0);
+        lcmap.put("RedAvg", lcral); lcmap.put("BlueAvg", lcbal); lcmap.put("GreenAvg", lcgal);
+        data.put("leftCheek", lcmap);
+
+        // Right Cheek
+        HashMap<String, ArrayList<Double>> rcmap = new HashMap<>();
+        ArrayList<Double> rcral = new ArrayList<>();
+        ArrayList<Double> rcbal = new ArrayList<>();
+        ArrayList<Double> rcgal = new ArrayList<>();
+
+        rcral.add(0.0); rcbal.add(0.0); rcgal.add(0.0);
+        rcmap.put("RedAvg", rcral); rcmap.put("BlueAvg", rcbal); rcmap.put("GreenAvg", rcgal);
+        data.put("rightCheek", rcmap);
+
     }
-
-    public Float getPixelsMean(ByteBuffer data,
-                               FrameMetadata frameMetadata,
-                               List<Face> faces) {
-        this.faces = faces;
-        this.bitmap = BitmapUtils.getBitmap(data, frameMetadata);
-        Float pixelAvg = (float) cropRoiAndCalculateAvg(this.bitmap, this.faces.get(0));
-        return pixelAvg;
-    }
-
-    private double cropRoiAndCalculateAvg(Bitmap bitmap, Face face) {
-
-        Mat src = new Mat();
-        Utils.bitmapToMat(bitmap, src);
-        Mat mask =  new Mat(new Size(src.cols(), src.rows()), CvType.CV_8UC1);
-        mask.setTo(new Scalar(0.0));
-        Scalar white = new Scalar(255, 255, 255);
-        PointF forehead_ul = new PointF(0, 0);
-        PointF forehead_ur = new PointF(0, 0);
-        PointF forehead_bl = new PointF(0, 0);
-        PointF forehead_br = new PointF(0, 0);
-
-        MatOfPoint polyPoints = new MatOfPoint();
-        List<Point> points = new ArrayList<>();
-
-        for (FaceContour contour : face.getAllContours()) {
-            int count = 0;
-            for (PointF point : contour.getPoints()) {
-                if (contour.getFaceContourType() == 1 && count == 33) {
-                    forehead_ul = point;
-                    points.add(new Point((int) point.x, (int) point.y));
-                }
-
-                if (contour.getFaceContourType() == 1 && count == 2) {
-                    forehead_ur = point;
-                    points.add(new Point((int) point.x, (int) point.y));
-                }
-
-                if (contour.getFaceContourType() == 2 && count == 2) {
-                    forehead_bl = point;
-                    points.add(new Point((int) point.x, (int) point.y));
-                }
-
-                if (contour.getFaceContourType() == 4 && count == 2) {
-                    forehead_br = point;
-                    points.add(new Point((int) point.x, (int) point.y));
-                }
-                count++;
-            }
-        }
-        polyPoints.fromList(points);
-        Imgproc.fillConvexPoly(mask, polyPoints, white);
-        List<Mat> lab_list = new ArrayList(3);
-        Core.split(src, lab_list);
-        Scalar RedAvg = Core.mean(lab_list.get(2), mask);
-        return RedAvg.val[0];
-    }
-
 
     public ArrayList<Float> setVariables(ByteBuffer data, FrameMetadata frameMetadata,
                                           List<Face> faces) {
-        this.faces = faces;
-
+        Bitmap bitmap;
         for (Face face: faces) {
             if (data == null) {
                 Log.d(TAG, "Image Byte Buffer was NULL !! ");
             } else {
-                this.bitmap = BitmapUtils.getBitmap(data, frameMetadata);
-                // if (this.bitmap != null) writeToDirectory();
-                if (this.bitmap != null)
-                    return convertToMatrix(this.bitmap, face);
+                bitmap = BitmapUtils.getBitmap(data, frameMetadata);
+                if (bitmap != null)
+                    return convertToMatrix(bitmap, face);
             }
         }
         return vitals;
     }
 
-    public ArrayList<Float> convertToMatrix(Bitmap bitmap, Face face) {
-        MatOfPoint mPoints = new MatOfPoint();
+    public HashMap<String, MatOfPoint> getFaceRegions(Face face) {
+        HashMap<String, MatOfPoint> faceRegions = new HashMap<>();
+        List<Point> foreheadPoints = new ArrayList<>();
+        List<Point> leftCheekPoints = new ArrayList<>();
+        List<Point> rightCheekPoints = new ArrayList<>();
+        List<Point> lipsPoints = new ArrayList<>();
+
+        MatOfPoint ffh = new MatOfPoint();
+        MatOfPoint flc = new MatOfPoint();
+        MatOfPoint frc = new MatOfPoint();
+
+        int lo; int hi;
+
+        // Draws all face contours.
+        // Log.d(TAG, String.valueOf(face.getAllContours()));
+        for (FaceContour contour : face.getAllContours()) {
+
+            // Get forehead points
+            if (contour.getFaceContourType() == 1) {
+                foreheadPoints.add(new Point((int) contour.getPoints().get(2).x, (int) contour.getPoints().get(2).y));
+                foreheadPoints.add(new Point((int) contour.getPoints().get(33).x, (int) contour.getPoints().get(33).y));
+            }
+
+            if (contour.getFaceContourType() == 2 || contour.getFaceContourType() == 4)
+                foreheadPoints.add(new Point((int) contour.getPoints().get(2).x, (int) contour.getPoints().get(2).y));
+
+
+            // Get left cheek points
+            if (contour.getFaceContourType() == 1) {
+                lo = 25; hi = 28;
+                for (int i = lo; i <= hi; i++)
+                    leftCheekPoints.add(new Point((int) contour.getPoints().get(i).x, (int) contour.getPoints().get(i).y));
+            }
+
+            if (contour.getFaceContourType() == 6) {
+                lo = 9; hi = 15;
+                for (int i = hi; i >= lo; i--)
+                    leftCheekPoints.add(new Point((int) contour.getPoints().get(i).x, (int) contour.getPoints().get(i).y));
+            }
+
+            if (contour.getFaceContourType() == 13) {
+                leftCheekPoints.add(new Point((int) contour.getPoints().get(0).x, (int) contour.getPoints().get(0).y));
+            }
+
+            // Get right cheek points
+            if (contour.getFaceContourType() == 1) {
+                lo = 7; hi = 11;
+                for (int i = hi; i >= lo; i--)
+                    rightCheekPoints.add(new Point((int) contour.getPoints().get(i).x, (int) contour.getPoints().get(i).y));
+            }
+
+            if (contour.getFaceContourType() == 7) {
+                lo = 9; hi = 15;
+                for (int i = lo; i <= hi; i++)
+                    rightCheekPoints.add(new Point((int) contour.getPoints().get(i).x, (int) contour.getPoints().get(i).y));
+            }
+
+            if (contour.getFaceContourType() == 13) {
+                rightCheekPoints.add(new Point((int) contour.getPoints().get(2).x, (int) contour.getPoints().get(2).y));
+            }
+        }
+
+        ffh.fromList(foreheadPoints); faceRegions.put("forehead", ffh);
+        flc.fromList(leftCheekPoints); faceRegions.put("leftCheek", flc);
+        frc.fromList(rightCheekPoints); faceRegions.put("rightCheek", frc);
+        return faceRegions;
+    }
+
+    private Mat getMask(Bitmap bitmap, MatOfPoint region) {
         Mat src = new Mat();
         Utils.bitmapToMat(bitmap, src);
 
@@ -163,123 +185,64 @@ public final class CropImage {
         mask.setTo(new Scalar(0.0));
         Scalar white = new Scalar(255, 255, 255);
 
-        // Mat gray = new Mat();
-        // Imgproc.cvtColor(src, gray, Imgproc.COLOR_RGBA2GRAY);
+        Imgproc.fillConvexPoly(mask, region, white);
+        return mask;
+    }
 
-        // Imgproc.Canny(gray, gray, 50, 200);
-        // List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-        // Mat hierarchy = new Mat();
+    private Double calculateMean(Mat src, Bitmap bitmap, HashMap<String,
+            MatOfPoint> regions, String region) {
 
-        // find contours:
-        // Imgproc.findContours(gray, contours, hierarchy,
-        // Imgproc.RETR_TREE,Imgproc.CHAIN_APPROX_SIMPLE);
-
-        // List<FaceContour> contours = getAllContours(face);
-
-        // for (int contourIdx = 0; contourIdx < contours.size(); contourIdx++) {
-        // Imgproc.drawContours(src, contours, contourIdx,
-        // new Scalar(0, 0, 255), -1);
-        // }
-        // Log.d(TAG, String.valueOf(contours));
-
-        // create a blank temp bitmap:
-        // Bitmap tempBmp1 = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(),
-                                                // bitmap.getConfig());
-        // Utils.matToBitmap(src, tempBmp1);
-        // writeToDirectory(tempBmp1);
-
-        // for (FaceContour contoursFace: face.getAllContours()) {
-        //    if (contoursFace.getFaceContourType() == 1)
-        //       mPoints = convertToMOP(contoursFace);
-        //       Imgproc.fillConvexPoly(mask, mPoints, white);
-        // }
-
-        PointF forehead_ul = new PointF(0, 0);
-        PointF forehead_ur = new PointF(0, 0);
-        PointF forehead_bl = new PointF(0, 0);
-        PointF forehead_br = new PointF(0, 0);
-
-        MatOfPoint polyPoints = new MatOfPoint();
-        List<Point> points = new ArrayList<>();
-
-        // Draws all face contours.
-        for (FaceContour contour : face.getAllContours()) {
-            int count = 0;
-            for (PointF point : contour.getPoints()) {
-                if (contour.getFaceContourType() == 1 && count == 33) {
-                    forehead_ul = point;
-                    points.add(new Point((int) point.x, (int) point.y));
-                }
-
-                if (contour.getFaceContourType() == 1 && count == 2) {
-                    forehead_ur = point;
-                    points.add(new Point((int) point.x, (int) point.y));
-                }
-
-                if (contour.getFaceContourType() == 2 && count == 2) {
-                    forehead_bl = point;
-                    points.add(new Point((int) point.x, (int) point.y));
-                }
-
-                if (contour.getFaceContourType() == 4 && count == 2) {
-                    forehead_br = point;
-                    points.add(new Point((int) point.x, (int) point.y));
-                }
-                count++;
-            }
-        }
-
-        polyPoints.fromList(points);
-        Imgproc.fillConvexPoly(mask, polyPoints, white);
-
+        Mat mask;
         ArrayList<Mat> dst = new ArrayList(3);
         Core.split(src, dst);
+
+        mask = getMask(bitmap, regions.get(region));
 
         Scalar BlueAvg = Core.mean(dst.get(0), mask);
         Scalar GreenAvg = Core.mean(dst.get(1), mask);
         Scalar RedAvg = Core.mean(dst.get(2), mask);
 
-        RedAvgList.add(RedAvg.val[0]);
+        data.get(region).get("RedAvg").add(RedAvg.val[0]);
+        data.get(region).get("BlueAvg").add(BlueAvg.val[0]);
+        data.get(region).get("GreenAvg").add(GreenAvg.val[0]);
 
-        bAvgList.add(BlueAvg.val[0]);
-        gAvgList.add(GreenAvg.val[0]);
-        rAvgList.add(RedAvg.val[0]);
+        return RedAvg.val[0];
+    }
 
+    public ArrayList<Float> convertToMatrix(Bitmap bitmap, Face face) {
+        double SamplingFreq;
+        HashMap<String, MatOfPoint> regions;
+        Mat src = new Mat();
+        Utils.bitmapToMat(bitmap, src);
+        regions = getFaceRegions(face);
+
+        Double red;
+        red = calculateMean(src, bitmap, regions, "forehead");
+        RedAvgList.add(red);
+
+        red = calculateMean(src, bitmap, regions, "leftCheek");
+        red = calculateMean(src, bitmap, regions, "rightCheek");
         long endTime = System.currentTimeMillis();
-        double totalTimeInSecs = (endTime - startTime) / 1000d; //to convert time to seconds
+        double totalTimeInSecs = (endTime - startTime) / 1000d; // To convert time to seconds
         counter++;
 
-        /** Created By: Abhash Priyadarshi
-          * Created on: 23/07/2022
-          * When 30 seconds of measuring passes do the following "we chose 30 seconds
-          * to take half sample since 60 seconds is normally a full sample of the heart
-          * beat
-         */
         if (totalTimeInSecs >= TIME_LAG_VITALS) {
 
             startTime = System.currentTimeMillis();
             SamplingFreq = (counter / totalTimeInSecs);
-            // Double[] Red = RedAvgList.toArray(new Double[RedAvgList.size()]);
-            // Double[] Blue = BlueAvgList.toArray(new Double[BlueAvgList.size()]);
             Double[] Red = RedAvgList.toArray(new Double[RedAvgList.size()]);
-            Double HRFreq = FFT.FFT(Red, counter, SamplingFreq);
+            double HRFreq = FFT.FFT(Red, counter, SamplingFreq);
             Float bpm = (float) ceil(HRFreq * 60);
 
-            // reset the counter to start counting new frames
+            // Reset the counter to start counting new frames
             counter = 0;
-            // clear the data points so far
+
+            // Clear the data points so far
             RedAvgList.clear();
-            // Log.d(TAG, Thread.currentThread().getName());
-            Log.d(TAG, "Heart Beat (per minute) : " + (String.valueOf(bpm)));
             vitals.set(0, bpm);
             vitals.set(1, 0f);
         }
         return vitals;
-
-        // Core.bitwise_and(lab_list.get(0), mask, lab_list.get(0));
-        // Core.bitwise_and(lab_list.get(1), mask, lab_list.get(1));
-        // Core.bitwise_and(lab_list.get(2), mask, lab_list.get(2));
-        // Core.merge(lab_list, mask);
 
          // fillArea(src, mPoints);
          // create a blank temp bitmap:
@@ -293,10 +256,6 @@ public final class CropImage {
         Scalar color = new Scalar(0, 0, 255);
         Imgproc.fillConvexPoly (src, points, color);
     }
-
-    // public List<FaceContour> getAllContours(Face face) {
-    //    return face.getAllContours();
-    // }
 
     /*  Save the byte array to a local file
      *  Create directory and return file returning video file
@@ -322,6 +281,14 @@ public final class CropImage {
         return mediaFile;
     }
 
+    public void saveImage(MatOfPoint points, Mat src, Bitmap bitmap) {
+        fillArea(src, points);
+        Bitmap tempBmp = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(),
+                                    bitmap.getConfig());
+        Utils.matToBitmap(src, tempBmp);
+        writeToDirectory(tempBmp);
+    }
+
     public void writeToDirectory(Bitmap bm) {
 
         File file = getOutputMediaFile();
@@ -342,18 +309,4 @@ public final class CropImage {
         }
     }
 
-    public MatOfPoint convertToMOP(FaceContour contours) {
-        MatOfPoint mPoints = new MatOfPoint();
-        List<Point> points = new ArrayList<>();
-
-        for (PointF c : contours.getPoints()) {
-            points.add(new Point((int) c.x, (int) c.y));
-        }
-
-        // Log.d(TAG, String.valueOf(points));
-        // Log.d(TAG, String.valueOf(contours));
-
-        mPoints.fromList(points);
-        return mPoints;
-    }
 }

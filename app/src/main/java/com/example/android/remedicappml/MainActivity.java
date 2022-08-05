@@ -47,7 +47,7 @@ public final class  MainActivity extends AppCompatActivity
     private CameraSource cameraSource = null;
     private CameraSourcePreview preview;
     private GraphicOverlay graphicOverlay;
-    private TextView user_bpm;
+    private TextView userBPM;
     private static final String FACE_DETECTION = "Face Detection";
     private final String selectedModel = FACE_DETECTION;
 
@@ -57,13 +57,6 @@ public final class  MainActivity extends AppCompatActivity
     private final Handler handler = new Handler();
 
     FaceDetectorProcessor faceDetectorProcessor;
-
-    /* Created this variable on 06.05.2022
-     to pass this to FaceDetector processor
-     The calculated value will be passed to
-     dashboard page
-    */
-    private final ArrayList<Float> signals = new ArrayList<>(2);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +76,10 @@ public final class  MainActivity extends AppCompatActivity
             Log.d(TAG, "graphicOverlay is null");
         }
 
-        user_bpm = findViewById(R.id.user_bpm);
+        userBPM = findViewById(R.id.user_bpm);
+        if (userBPM == null) {
+            Log.d(TAG, "User beats per minute is null");
+        }
 
         if (allPermissionsGranted()) {
             createCameraSource(selectedModel);
@@ -96,9 +92,6 @@ public final class  MainActivity extends AppCompatActivity
         else
             Log.d("OpenCV", "OpenCV loaded Successfully!");
 
-        // Intent intent = new Intent(this, Dashboard.class);
-
-
         progressBar = findViewById(R.id.progressBar);
         progressBar.setMax(200);
 
@@ -106,23 +99,24 @@ public final class  MainActivity extends AppCompatActivity
             public void run() {
                 while (progressStatus < 200) {
                     progressStatus = sleepThread();
-                    handler.post(new Runnable() {
-                        public void run() {
+                    handler.post(() -> {
+                        progressBar.setProgress(progressStatus);
+                        try {
                             List<Float> vitals = faceDetectorProcessor.returnSignals();
-                            progressBar.setProgress(progressStatus);
-                            user_bpm.setText(String.valueOf(vitals.get(0)));
+                            userBPM.setText(String.valueOf(vitals.get(0)));
+                        }
+                        catch (NullPointerException e) {
+                            userBPM.setText(String.valueOf(0F));
                         }
                     });
                 }
-                handler.post(new Runnable() {
-                    public void run() {
-                        progressBar.setVisibility(View.GONE);
-                        if (progressStatus == 200) {
-                            List<Float> vitals = faceDetectorProcessor.returnSignals();
-                            DataModel dataModel = faceDetectorProcessor.returnDataModel();
-                            postData(dataModel);
-                            sendUserVitals(vitals.get(0), vitals.get(1), 0F);
-                        }
+                handler.post(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    if (progressStatus == 200) {
+                        List<Float> vitals = faceDetectorProcessor.returnSignals();
+                        DataModel dataModel = faceDetectorProcessor.returnDataModel();
+                        postData(dataModel);
+                        sendUserVitals(vitals.get(0), vitals.get(1), 0F);
                     }
                 });
             }
@@ -136,7 +130,7 @@ public final class  MainActivity extends AppCompatActivity
                 return ++progress;
             }
         }).start();
-        faceDetectorProcessor = new FaceDetectorProcessor(this, signals);
+        faceDetectorProcessor = new FaceDetectorProcessor(this);
     }
 
     private void sendUserVitals(Float bpm, Float spo2, Float si) {
@@ -202,8 +196,6 @@ public final class  MainActivity extends AppCompatActivity
             cameraSource.release();
         }
     }
-
-    public void checkIfItGetsCalled() {}
 
     private String[] getRequiredPermissions() {
         try {

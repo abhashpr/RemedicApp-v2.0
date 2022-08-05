@@ -74,7 +74,6 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
 
     // Added to send vitals to cropImage object
     public List<Float> signals;
-
     // To keep the latest images and its metadata.
     @GuardedBy("this")
     private ByteBuffer latestImage;
@@ -105,6 +104,8 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
                 /* delay= */ 0,
                 /* period= */ 1000);
         temperatureMonitor = new TemperatureMonitor(context);
+
+
     }
 
     // -----------------Code for processing single still image----------------------------------------
@@ -333,20 +334,20 @@ public abstract class VisionProcessorBase<T extends List<Face>> implements Visio
                     // Stored values in variable to be passed to dashboard intent
                     signals = vitals;
                     // this.cid.writeToDirectory();
-                    if (vitals != null && vitals.size() == 2) {
-                        graphicOverlay.add(
-                                new VitalsInfoGraphicsNw(
-                                        graphicOverlay,
-                                        Math.round(vitals.get(0)/2),
-                                        Math.round(vitals.get(1)),
-                                        shouldShowFps ? framesPerSecond : null));
-                    }
+//                    if (vitals != null && vitals.size() == 2) {
+//                        graphicOverlay.add(
+//                                new VitalsInfoGraphicsNw(
+//                                        graphicOverlay,
+//                                        Math.round(vitals.get(0)/2),
+//                                        Math.round(vitals.get(1)),
+//                                        shouldShowFps ? framesPerSecond : null));
+//                    }
 
                     /* Add a section to capture the vitals to be sent through APIs
                      */
                     dataModel.set_beats_per_minute(vitals.get(0));
                     dataModel.set_fps(fps_list);
-                    dataModel.set_data_model(cid.bAvgList, cid.rAvgList, cid.gAvgList);
+                    dataModel.set_data_model(cid.bAvgList, cid.rAvgList, cid.gAvgList, cid.data);
 
                     graphicOverlay.postInvalidate();
                 })

@@ -3,6 +3,7 @@ package com.example.android.remedicappml;
 import org.opencv.core.Mat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class DataModel {
@@ -14,6 +15,8 @@ public class DataModel {
     private ArrayList<Double> BlueAvg;
     private ArrayList<Double> GreenAvg;
     private ArrayList<Double> RedAvg;
+
+    private HashMap<String, HashMap<String, ArrayList<Double>>> data = new HashMap<>();
 
     public DataModel() {}
 
@@ -34,10 +37,12 @@ public class DataModel {
     public void set_stress_index(float si) { this.stress_index = si; }
     public void set_fps(ArrayList<Integer> fps) { this.fps = fps; }
 
-    public void set_data_model(ArrayList<Double> blueAvg, ArrayList<Double> greenAvg, ArrayList<Double> redAvg) {
+    public void set_data_model(ArrayList<Double> blueAvg, ArrayList<Double> greenAvg,
+                               ArrayList<Double> redAvg, HashMap<String, HashMap<String, ArrayList<Double>>> data) {
         this.BlueAvg = blueAvg;
         this.GreenAvg = greenAvg;
         this.RedAvg = redAvg;
+        this.data = data;
     }
 
 }

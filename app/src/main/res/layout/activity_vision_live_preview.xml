@@ -8,9 +8,9 @@
     android:keepScreenOn="true"
     android:textAlignment="center">
 
-<!--    <include-->
-<!--        android:id="@+id/toolbar"-->
-<!--        layout="@layout/toolbar" />-->
+    <!--    <include                          -->
+    <!--        android:id="@+id/toolbar"     -->
+    <!--        layout="@layout/toolbar" />   -->
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -38,33 +38,53 @@
         app:layout_constraintLeft_toLeftOf="@id/preview_view"
         app:layout_constraintRight_toRightOf="@id/preview_view"
         app:layout_constraintTop_toTopOf="@+id/preview_view" />
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:id="@+id/user_readings"
-        android:layout_height="70dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginBottom="450dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:background="@drawable/curved_rectangle" >
 
-        <TextView
-            android:id="@+id/user_bpm"
-            android:layout_width="111dp"
-            android:layout_height="70dp"
-            android:text="60.0"
-            android:textColor="@color/white"
-            android:textSize="30sp"></TextView>
-    </LinearLayout>
+
+
+<!--    <Button-->
+<!--        android:id="@+id/button_save"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="button_save_text"-->
+<!--        android:layout_marginStart="8dp"-->
+<!--        android:layout_marginBottom="8dp"-->
+<!--        android:layout_marginEnd="4dp"-->
+<!--        app:layout_constraintLeft_toLeftOf="parent"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintRight_toLeftOf="@+id/button_share"-->
+<!--        app:layout_constraintHorizontal_chainStyle="spread" />-->
+
+<!--    <Button-->
+<!--        android:id="@+id/button_share"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="button_share_text"-->
+<!--        android:layout_marginStart="4dp"-->
+<!--        android:layout_marginEnd="8dp"-->
+<!--        android:layout_marginBottom="8dp"-->
+<!--        app:layout_constraintLeft_toRightOf="@+id/button_save"-->
+<!--        app:layout_constraintRight_toLeftOf="button_spare"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent" />-->
+
+<!--    <Button-->
+<!--        android:id="@+id/button_spare"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="button_share_text"-->
+<!--        android:layout_marginStart="4dp"-->
+<!--        android:layout_marginEnd="8dp"-->
+<!--        android:layout_marginBottom="8dp"-->
+<!--        app:layout_constraintLeft_toRightOf="@+id/button_share"-->
+<!--        app:layout_constraintRight_toRightOf="parent"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent" />-->
+
     <LinearLayout
         android:layout_width="match_parent"
         android:id="@+id/user_controls"
         android:layout_height="70dp"
         android:layout_marginBottom="10dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         android:background="@drawable/curved_rectangle" >
@@ -101,5 +121,117 @@
             android:layout_weight="1"
             android:layout_gravity="center"
             card_view:srcCompat="@drawable/ic_baseline_settings_24" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/user_readings"
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"
+        android:background="@drawable/vitals_scoreboard"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/user_controls">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center_vertical"
+            android:gravity="center"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/user_bpm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="60.0"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:textSize="25sp"
+                app:layout_constraintStart_toStartOf="parent"></TextView>
+
+            <TextView
+                android:id="@+id/user_bpm_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Heart rate"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                app:layout_constraintTop_toBottomOf="@+id/user_bpm"
+                app:layout_constraintStart_toStartOf="parent"></TextView>
+        </LinearLayout>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="25dp"
+            android:layout_marginTop="25dp"
+            android:background="#C3C3C8" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center_vertical"
+            android:gravity="center"
+            android:layout_weight="1">
+            <TextView
+                android:id="@+id/user_spo2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="99"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:textSize="25sp"
+                app:layout_constraintStart_toStartOf="parent"></TextView>
+
+            <TextView
+                android:id="@+id/user_spo2_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Spo2"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                app:layout_constraintTop_toBottomOf="@+id/user_bpm"
+                app:layout_constraintStart_toStartOf="parent"></TextView>
+        </LinearLayout>
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="25dp"
+            android:layout_marginTop="25dp"
+            android:background="#C3C3C8" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center_vertical"
+            android:gravity="center"
+            android:layout_weight="1">
+            <TextView
+                android:id="@+id/user_si"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3/10"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:textSize="25sp"
+                app:layout_constraintStart_toStartOf="parent"></TextView>
+
+            <TextView
+                android:id="@+id/user_si_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stress Index"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                app:layout_constraintTop_toBottomOf="@+id/user_bpm"
+                app:layout_constraintStart_toStartOf="parent"></TextView>
+        </LinearLayout>
+
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
